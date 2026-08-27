@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 class UserRegistry(BaseModel):
     email: EmailStr
-    passwords: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
 
 
 class UserResponse(BaseModel):
