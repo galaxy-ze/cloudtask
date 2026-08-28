@@ -4,9 +4,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.user import UserRegistry, UserResponse
+from app.schemas.user import UserRegistry, UserResponse, UserLogin, TokenResponse
 from app.models.user import User
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password, create_access_token
+from app.api.deps import get_current_user
 
 
 router = APIRouter(prefix="/auth",tags=["auth"])
@@ -45,3 +46,34 @@ def register(user_data: UserRegistry, db: Session = Depends(get_db)):
 
     return user
 
+
+@router.post("/login", response_model=TokenResponse)
+def login(login_data: UserLogin, db: Session = Depends(get_db)):
+    email = str(login_data.email).lower()
+
+    user = db.scalar(
+        select(User).where(User.email == email)
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    if not verify_password(login_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    access_token = create_access_token(user.id)
+
+    return{
+        "access_token": access_token,
+        "token_type": "bearer",
+    }
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
