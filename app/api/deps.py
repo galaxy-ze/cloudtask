@@ -36,7 +36,7 @@ def get_current_user(
     except(jwt.InvalidTokenError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invaild authentication credentials",
+            detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
 
@@ -45,7 +45,7 @@ def get_current_user(
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invaild authentication credentials",
+            detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"}
         )
 

@@ -45,7 +45,7 @@ def setup_database():
     Base.metadata.drop_all(bind=test_engine)
 
 @pytest.fixture
-def clinet():
+def client():
     with TestClient(app) as test_client:
         yield test_client
 
