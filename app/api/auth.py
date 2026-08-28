@@ -4,9 +4,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.user import UserRegistry, UserResponse, UserLogin
+from app.schemas.user import UserRegistry, UserResponse, UserLogin, TokenResponse
 from app.models.user import User
-from app.core.security import hash_password, verify_password
+from app.core.security import hash_password, verify_password, create_access_token
 
 
 router = APIRouter(prefix="/auth",tags=["auth"])
@@ -46,7 +46,7 @@ def register(user_data: UserRegistry, db: Session = Depends(get_db)):
     return user
 
 
-@router.post("/login")
+@router.post("/login", response_model=TokenResponse)
 def login(login_data: UserLogin, db: Session = Depends(get_db)):
     email = str(login_data.email).lower()
 
@@ -66,6 +66,9 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
             detail="Invaild email or password"
         )
 
+    access_token = create_access_token(user.id)
+
     return{
-        "message": "Login sucessful"
+        "access_token": access_token,
+        "token_type": "bearer",
     }
