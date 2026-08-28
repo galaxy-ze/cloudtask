@@ -4,9 +4,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.schemas.user import UserRegistry, UserResponse
+from app.schemas.user import UserRegistry, UserResponse, UserLogin
 from app.models.user import User
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 
 
 router = APIRouter(prefix="/auth",tags=["auth"])
@@ -45,3 +45,27 @@ def register(user_data: UserRegistry, db: Session = Depends(get_db)):
 
     return user
 
+
+@router.post("/login")
+def login(login_data: UserLogin, db: Session = Depends(get_db)):
+    email = str(login_data.email).lower()
+
+    user = db.scalar(
+        select(User).where(User.email == email)
+    )
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    if not verify_password(login_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invaild email or password"
+        )
+
+    return{
+        "message": "Login sucessful"
+    }

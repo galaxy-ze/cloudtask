@@ -37,7 +37,6 @@ def test_register_duplicate_email(clinet):
         "/auth/register",
         json=payload,
     )
-    print(first_response.json())
     assert first_response.status_code == 201
     assert second_response.status_code == 409
 
